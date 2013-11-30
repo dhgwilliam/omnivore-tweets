@@ -6,6 +6,7 @@ gem 'tactful_tokenizer'
 gem 'bitly'
 gem 'dotenv'
 gem 'yaml_record'
+gem 'slop'
 
 group :development do
   gem 'pry'

@@ -51,5 +51,6 @@ DEPENDENCIES
   nokogiri
   pry
   rb-readline
+  slop
   tactful_tokenizer
   yaml_record

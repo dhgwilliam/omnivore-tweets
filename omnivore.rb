@@ -3,8 +3,8 @@ require 'httparty'
 require 'tactful_tokenizer'
 require 'bitly'
 require 'dotenv'
-require 'yaml'
 require 'yaml_record'
+require 'slop'
 
 Dotenv.load
 TOKENIZER = TactfulTokenizer::Model.new

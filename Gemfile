@@ -5,6 +5,7 @@ gem 'httparty'
 gem 'tactful_tokenizer'
 gem 'bitly'
 gem 'dotenv'
+gem 'yaml_record'
 
 group :development do
   gem 'pry'

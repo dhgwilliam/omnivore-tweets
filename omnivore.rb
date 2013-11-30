@@ -3,6 +3,8 @@ require 'httparty'
 require 'tactful_tokenizer'
 require 'bitly'
 require 'dotenv'
+require 'yaml'
+require 'yaml_record'
 
 Dotenv.load
 TOKENIZER = TactfulTokenizer::Model.new
@@ -19,8 +21,6 @@ class Blog
 
   def initialize(args = {})
     @url       = args[:url] || 'http://www.bookforum.com/blog'
-    @doc       = doc
-    @post_urls = post_urls
     @posts     = posts
   end
 
@@ -29,7 +29,7 @@ class Blog
   end
 
   def post_urls
-    headlines = @doc.css('h1 a')
+    headlines = doc.css('h1 a')
     headlines = headlines.select {|node| node.attributes["name"] && node.attributes["name"].value.match(/entry/)}
     headlines.map! {|node| node.attributes["href"].value}
     headlines.map {|url| 
@@ -38,35 +38,52 @@ class Blog
   end
 
   def posts
-    @posts || fetch_posts
+    Post.all
   end
 
   def fetch_posts
-    @posts = []
     post_urls.each do |url|
-      puts "fetching #{url}"
-      @posts << Post.new(:url => url)
+      if Post.find_by_attribute(:url, url)
+        puts "found #{url}"
+        Post.find_by_attribute(:url, url)
+      else
+        puts "fetching #{url}"
+        PostController.new(:url => url)
+      end
     end 
-    @posts
+    Post.all
   end
 
   # private :fetch_posts
 end
 
-class Post
+class Post < YamlRecord::Base
   attr_reader :url
+  properties :url, :sentences, :links, :title
+  source File.join(File.dirname(__FILE__), 'data', 'posts')
+end
 
-
+class PostController
   def initialize(args)
     @url       = args[:url]
+    @raw       = args[:raw] || raw
     @doc       = doc
     @to_html   = to_html
     @sentences = sentences
     @links     = links
+    @title     = title
+    Post.find_by_attribute(:url, @url) || Post.create(:url => @url,
+                :sentences => @sentences,
+                :links => @links,
+                :title => @title)
+  end
+
+  def raw
+    @raw || Nokogiri::HTML(HTTParty.get(@url))
   end
 
   def doc
-    @doc || Nokogiri::HTML(HTTParty.get(@url)).css('div.Entry div.Padding p').first
+    @doc || raw.css('div.Entry div.Padding p').first
   end
 
   def to_html
@@ -88,6 +105,9 @@ class Post
     links.map { |sentence| sentence.url }
   end
 
+  def title
+    @title || raw.css('div.Entry div.Padding div.Topper h1').first.children.children.first.content
+  end
 end
 
 class Sentence
@@ -97,7 +117,6 @@ class Sentence
     @doc       = args[:doc]
     @content   = content
     @url       = url
-    @short_url = short_url if @url
   end
 
   def content
@@ -126,10 +145,16 @@ class Sentence
   end
 
   def short_url
-    @short_url || BITLY.shorten(@url).short_url
+    if @url
+      @short_url ||= BITLY.shorten(@url).short_url 
+    else
+      nil
+    end
   end
 
   def display
-    "#{content}: #{short_url}"
+    "#{content}: #{short_url}" if @url
   end
 end
+
+blog = Blog.new

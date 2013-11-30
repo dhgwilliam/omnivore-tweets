@@ -8,6 +8,7 @@ opts = Slop.new do
     puts "Commands implemented so far:"
     puts "update  -  fetch and save any new posts"
     puts "posts   -  display saved post titles"
+    puts "links   -  display links from --post [ID]"
   end
 
   command 'update' do

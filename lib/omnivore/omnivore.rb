@@ -1,10 +1,10 @@
+#!/usr/bin/env ruby
 require 'nokogiri'
 require 'httparty'
 require 'tactful_tokenizer'
 require 'bitly'
 require 'dotenv'
 require 'yaml_record'
-require 'slop'
 
 Dotenv.load
 TOKENIZER = TactfulTokenizer::Model.new
@@ -17,50 +17,48 @@ end
 BITLY = Bitly.client
 
 class Blog
-  attr_reader :url
+  @@url = 'http://www.bookforum.com/blog'
+  class << self
+    def url
+      @@url
+    end
 
-  def initialize(args = {})
-    @url       = args[:url] || 'http://www.bookforum.com/blog'
-    @posts     = posts
+    def doc
+      @doc || Nokogiri::HTML(HTTParty.get(@@url))
+    end
+
+    def post_urls
+      headlines = doc.css('h1 a')
+      headlines = headlines.select {|node| node.attributes["name"] && node.attributes["name"].value.match(/entry/)}
+      headlines.map! {|node| node.attributes["href"].value}
+      headlines.map {|url| 
+        url.slice!(/\/blog/)
+        @@url + url }
+    end
+
+    def posts
+      Post.all
+    end
+
+    def fetch_posts
+      post_urls.each do |url|
+        if Post.find_by_attribute(:url, url)
+          puts "found #{url}"
+          Post.find_by_attribute(:url, url)
+        else
+          puts "fetching #{url}"
+          PostController.new(:url => url)
+        end
+      end 
+      Post.all
+    end
   end
-
-  def doc
-    @doc || Nokogiri::HTML(HTTParty.get(@url))
-  end
-
-  def post_urls
-    headlines = doc.css('h1 a')
-    headlines = headlines.select {|node| node.attributes["name"] && node.attributes["name"].value.match(/entry/)}
-    headlines.map! {|node| node.attributes["href"].value}
-    headlines.map {|url| 
-      url.slice!(/\/blog/)
-      @url + url }
-  end
-
-  def posts
-    Post.all
-  end
-
-  def fetch_posts
-    post_urls.each do |url|
-      if Post.find_by_attribute(:url, url)
-        puts "found #{url}"
-        Post.find_by_attribute(:url, url)
-      else
-        puts "fetching #{url}"
-        PostController.new(:url => url)
-      end
-    end 
-    Post.all
-  end
-
-  # private :fetch_posts
 end
 
 class Post < YamlRecord::Base
   attr_reader :url
   properties :url, :sentences, :links, :title
-  source File.join(File.dirname(__FILE__), 'data', 'posts')
+  source File.join('data', 'posts')
 end
 
 class PostController
@@ -153,8 +151,8 @@ class Sentence
   end
 
   def display
-    "#{content}: #{short_url}" if @url
+    display_content = content
+    display_content.chop! if display_content.end_with?('.')
+    "#{display_content}: #{short_url}" if @url
   end
 end
-
-blog = Blog.new

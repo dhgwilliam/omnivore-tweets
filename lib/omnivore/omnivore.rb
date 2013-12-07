@@ -70,10 +70,11 @@ class PostController
     @sentences = sentences
     @links     = links
     @title     = title
-    Post.find_by_attribute(:url, @url) || Post.create(:url => @url,
-                :sentences => @sentences,
-                :links => @links,
-                :title => @title)
+    Post.find_by_attribute(:url, @url) || 
+      Post.create(:url       => @url,
+                  :sentences => @sentences,
+                  :links     => @links,
+                  :title     => @title)
   end
 
   def raw

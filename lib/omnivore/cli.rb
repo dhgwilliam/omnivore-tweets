@@ -29,10 +29,23 @@ opts = Slop.new do
 
   command 'links' do
     on :post=, 'Post URL/ID'
+    on :tweets, 'Tweet length links only'
+    on :all, 'Print all tweet length links (HUGE)'
 
     run do |o|
-      p = Post.find_by_attribute(:url, "#{Blog.url}/#{o.to_hash[:post]}")
-      p.sentences.each {|s| puts s.display if s.display }
+      if o.to_hash[:all]
+        posts = Post.all
+      else
+        posts = [ Post.find_by_attribute(:url, "#{Blog.url}/#{o.to_hash[:post]}") ]
+      end
+
+      posts.each {|p|
+        if o.to_hash[:tweets]
+          p.sentences.each {|s| puts s.display if s.display and s.display.length <= 140 }
+        else
+          p.sentences.each {|s| puts s.display + " (#{s.display.length})" if s.display }
+        end
+      }
     end
   end
 end

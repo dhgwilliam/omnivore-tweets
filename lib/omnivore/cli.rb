@@ -19,8 +19,11 @@ opts = Slop.new do
 
   command 'posts' do
     run do
-      Blog.posts.each {|p| 
-        puts "#{p.url.split('/').last}: #{p.title}" }
+
+      # i tried to refactor url.split('/').last to Post#url but it didn't work 
+      # at all and I have no idea why. See remnants in the lib.
+      posts = Blog.posts.sort_by! { |p|  p.url.split('/').last }
+      posts.each {|p| puts "#{p.url.split('/').last} - #{p.title}" }
     end
   end
 

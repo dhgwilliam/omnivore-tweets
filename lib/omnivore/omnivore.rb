@@ -106,6 +106,10 @@ class PostController
   def title
     @title || raw.css('div.Entry div.Padding div.Topper h1').first.children.children.first.content
   end
+
+  def url_id
+    @url.split('/').last
+  end
 end
 
 class Sentence

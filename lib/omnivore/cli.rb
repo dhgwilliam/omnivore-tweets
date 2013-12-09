@@ -2,7 +2,6 @@
 $:.unshift('./lib')
 require 'omnivore'
 require 'slop'
-require 'pry'
 
 opts = Slop.new do
   on '-h', :help, 'Display this documentation' do

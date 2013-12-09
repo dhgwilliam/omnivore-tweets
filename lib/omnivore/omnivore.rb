@@ -59,6 +59,10 @@ class Post < YamlRecord::Base
   attr_reader :url
   properties :url, :sentences, :links, :title
   source File.join('data', 'posts')
+
+  def uid
+    url.split('/').last
+  end
 end
 
 class PostController
@@ -106,10 +110,6 @@ class PostController
 
   def title
     @title || raw.css('div.Entry div.Padding div.Topper h1').first.children.children.first.content
-  end
-
-  def url_id
-    @url.split('/').last
   end
 end
 

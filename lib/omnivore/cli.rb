@@ -20,11 +20,8 @@ opts = Slop.new do
 
   command 'posts' do
     run do
-
-      # i tried to refactor url.split('/').last to Post#url but it didn't work 
-      # at all and I have no idea why. See remnants in the lib.
-      posts = Blog.posts.sort_by! { |p|  p.url.split('/').last }
-      posts.each {|p| puts "#{p.url.split('/').last} - #{p.title}" }
+      posts = Blog.posts.sort_by! { |p|  p.uid }
+      posts.each {|p| puts "#{p.uid} - #{p.title}" }
     end
   end
 
@@ -42,8 +39,8 @@ opts = Slop.new do
       end
 
       sentences = posts.collect{|p|p.sentences}.flatten.select{|s|s.display}
-      sentences.select! { |s| s.display.length <= 140 } if o.to_hash[:tweets]
-      sentences.each {|s| puts s.display + " (#{s.display.length})" }
+      sentences.select! {|s| s.display.length <= 140 } if o.to_hash[:tweets]
+      sentences.each {|s| puts "#{s.display} (#{s.display.length})" }
     end
   end
 end

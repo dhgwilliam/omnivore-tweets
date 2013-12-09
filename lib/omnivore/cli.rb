@@ -2,6 +2,7 @@
 $:.unshift('./lib')
 require 'omnivore'
 require 'slop'
+require 'pry'
 
 opts = Slop.new do
   on '-h', :help, 'Display this documentation' do
@@ -33,19 +34,16 @@ opts = Slop.new do
     on :all, 'Print all tweet length links (HUGE)'
 
     run do |o|
-      if o.to_hash[:all]
-        posts = Post.all
+      # i should probably implement a class for this task
+      posts = if o.to_hash[:all]
+        Post.all
       else
-        posts = [ Post.find_by_attribute(:url, "#{Blog.url}/#{o.to_hash[:post]}") ]
+        [ Post.find_by_attribute(:url, "#{Blog.url}/#{o.to_hash[:post]}") ]
       end
 
-      posts.each {|p|
-        if o.to_hash[:tweets]
-          p.sentences.each {|s| puts s.display if s.display and s.display.length <= 140 }
-        else
-          p.sentences.each {|s| puts s.display + " (#{s.display.length})" if s.display }
-        end
-      }
+      sentences = posts.collect{|p|p.sentences}.flatten.select{|s|s.display}
+      sentences.select! { |s| s.display.length <= 140 } if o.to_hash[:tweets]
+      sentences.each {|s| puts s.display + " (#{s.display.length})" }
     end
   end
 end

@@ -6,6 +6,7 @@ require 'bitly'
 require 'dotenv'
 require 'yaml_record'
 
+# set up
 Dotenv.load
 TOKENIZER = TactfulTokenizer::Model.new
 
@@ -15,6 +16,8 @@ Bitly.configure do |config|
   config.api_key = ENV['API_KEY']
 end
 BITLY = Bitly.client
+DATASOURCE = ENV['DATASOURCE'] || File.join('data','posts')
+File.write("#{DATASOURCE}.yml", '') unless File.exists?("#{DATASOURCE}.yml")
 
 class Blog
   @@url = 'http://www.bookforum.com/blog'
@@ -58,7 +61,7 @@ end
 class Post < YamlRecord::Base
   attr_reader :url
   properties :url, :sentences, :links, :title
-  source File.join('data', 'posts')
+  source DATASOURCE
 
   def uid
     url.split('/').last

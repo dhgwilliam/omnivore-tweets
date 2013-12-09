@@ -8,6 +8,5 @@
         API_LOGIN='dhgwilliam'
         API_KEY='R_abcdef0123456789'
 
-  * `touch data/posts.yml`
   * `bin/omnivore -h`
   * `bin/omnivore update`

@@ -26,20 +26,27 @@ opts = Slop.new do
 
   command 'links' do
     on :post=, 'Post URL/ID'
-    on :tweets, 'Tweet length links only'
+    on :tweets, 'Tweet length links only (implies --shorten)'
     on :all, 'Print all tweet length links (HUGE)'
+    on :shorten, 'Use bit.ly link shortener'
 
     run do |o|
-      # i should probably implement a class for this task
+      # TODO i should probably implement a class for this task
       posts = if o.to_hash[:all]
-        Post.all
-      else
-        [ Post.find_by_attribute(:url, "#{Blog.url}/#{o.to_hash[:post]}") ]
-      end
+                Post.all
+              else
+                [ Post.find_by_attribute(:url, "#{Blog.url}/#{o.to_hash[:post]}") ]
+              end
 
-      sentences = posts.collect{|p|p.sentences}.flatten.select{|s|s.display}
-      sentences.select! {|s| s.display.length <= 140 } if o.to_hash[:tweets]
-      sentences.each {|s| puts "#{s.display} (#{s.display.length})" }
+      display_args =  if o.to_hash[:shorten] or o.to_hash[:tweets]
+                        { :shorten => true }
+                      else
+                        { :shorten => false }
+                      end
+
+      sentences = posts.collect{|p|p.sentences}.flatten.select{|s|s.url}
+      sentences.select! {|s| s.display(display_args).length <= 140 } if o.to_hash[:tweets]
+      sentences.each {|s| puts "#{s.display(display_args)} (#{s.display(display_args).length})" }
     end
   end
 end

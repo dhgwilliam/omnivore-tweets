@@ -158,9 +158,16 @@ class Sentence
     end
   end
 
-  def display
-    display_content = content
-    display_content.chop! if display_content.end_with?('.')
-    "#{display_content}: #{short_url}" if @url
+  def display(args = {})
+    if @url
+      display_content = content
+      display_content.chop! if display_content.end_with?('.')
+      display_url = if args[:shorten]
+                      short_url
+                    else
+                      @url
+                    end
+      "#{display_content}: #{display_url}"
+    end
   end
 end

@@ -17,7 +17,7 @@ Bitly.configure do |config|
 end
 BITLY = Bitly.client
 DATASOURCE = ENV['DATASOURCE'] || File.join('data','posts')
-File.write("#{DATASOURCE}.yml", '') unless File.exists?("#{DATASOURCE}.yml")
+File.write("#{DATASOURCE}.yml", '---') unless File.exists?("#{DATASOURCE}.yml")
 
 class Blog
   @@url = 'http://www.bookforum.com/blog'
